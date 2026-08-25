@@ -1,3 +1,4 @@
+// Custom error class to format operational HTTP errors consistently
 class AppError extends Error {
   constructor(message, statusCode, errorCode = 'BAD_REQUEST') {
     super(message);

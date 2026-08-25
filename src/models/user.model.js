@@ -1,13 +1,11 @@
 const crypto = require('crypto');
 const { MAX_FAILED_LOGIN_ATTEMPTS, LOCKOUT_DURATION_MINUTES } = require('../config/constants.config');
 
-// In-memory data store for users
+// In-memory store holding active and pending user records
 const users = new Map();
 
 class UserModel {
-  /**
-   * Create a new user record
-   */
+  // Save new user profile during registration
   static async create(userData) {
     const userId = crypto.randomUUID();
     const newUser = {
@@ -28,17 +26,13 @@ class UserModel {
     return { ...newUser };
   }
 
-  /**
-   * Find user by ID
-   */
+  // Retrieve user profile by user ID
   static async findById(id) {
     const user = users.get(id);
     return user ? { ...user } : null;
   }
 
-  /**
-   * Find user by Email or Phone
-   */
+  // Find user by either email or phone number
   static async findByEmailOrPhone(identifier) {
     const cleanId = identifier.toLowerCase().trim();
     for (const user of users.values()) {
@@ -49,9 +43,7 @@ class UserModel {
     return null;
   }
 
-  /**
-   * Find user by Email
-   */
+  // Find user specifically by email
   static async findByEmail(email) {
     const cleanEmail = email.toLowerCase().trim();
     for (const user of users.values()) {
@@ -62,9 +54,7 @@ class UserModel {
     return null;
   }
 
-  /**
-   * Update user details
-   */
+  // Update specific fields on user record
   static async update(id, updates) {
     const user = users.get(id);
     if (!user) return null;
@@ -74,9 +64,7 @@ class UserModel {
     return { ...updatedUser };
   }
 
-  /**
-   * Record a failed login attempt and apply account lockout if threshold reached
-   */
+  // Track bad password attempts and apply temporary lockout if limit reached
   static async recordFailedLogin(id) {
     const user = users.get(id);
     if (!user) return null;
@@ -98,9 +86,7 @@ class UserModel {
     return { ...updatedUser };
   }
 
-  /**
-   * Reset failed login counter upon successful authentication
-   */
+  // Clear failed attempt counters after successful authentication
   static async resetFailedLogin(id) {
     const user = users.get(id);
     if (!user) return null;
@@ -115,9 +101,7 @@ class UserModel {
     return { ...updatedUser };
   }
 
-  /**
-   * Clear all users (useful for testing)
-   */
+  // Reset store for integration tests
   static async clear() {
     users.clear();
   }

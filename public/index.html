@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IAM Authentication & MFA System</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- Top Global Header & View Switcher -->
+  <header class="top-navbar">
+    <div class="brand">
+      <span>🔒 SecureID</span>
+      <span class="brand-badge">Enterprise IAM</span>
+    </div>
+    <div class="view-mode-toggle">
+      <button id="btnViewWeb" class="view-mode-btn active">🌐 Web View</button>
+      <button id="btnViewMobile" class="view-mode-btn">📱 Mobile View</button>
+    </div>
+  </header>
+
+  <!-- Viewport Container -->
+  <main class="app-viewport viewport-web" id="appViewport">
+    
+    <!-- Web Left Branding Hero Panel -->
+    <div class="web-brand-panel">
+      <div>
+        <div class="hero-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h1>SecureID</h1>
+        <p>Identity & Access Management Platform with Multi-Factor Authentication, Session Security & JWT Verification.</p>
+      </div>
+
+      <!-- Live Simulated Console Logger -->
+      <div>
+        <div class="terminal-card">
+          <div class="terminal-header">
+            <span>Terminal - Simulated Email/SMS Console</span>
+            <div class="terminal-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+          </div>
+          <div class="terminal-body" id="terminalConsole">
+            [SERVER INITIALIZED] Listening for OTP requests...
+          </div>
+        </div>
+        <div class="web-brand-footer" style="margin-top: 12px;">
+          © 2026 SecureID IAM Platform. All rights reserved.
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Content Panel / Mobile Screen Body -->
+    <div class="web-content-panel">
+
+      <!-- Mobile Notch (Visible in mobile view) -->
+      <div class="mobile-notch">
+        <div class="mobile-notch-speaker"></div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 1: LOGIN (DEFAULT) -->
+      <!-- ========================================== -->
+      <section id="screen-login" class="screen-view active">
+        <div class="screen-header">
+          <h2 class="screen-title">Welcome back!</h2>
+          <p class="screen-subtitle">Login to your account</p>
+        </div>
+
+        <div id="loginAlert" class="alert alert-danger" style="display: none;"></div>
+
+        <form id="formLogin" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email or Username</label>
+            <div class="input-wrapper">
+              <input type="text" id="loginIdentifier" class="form-input" placeholder="priya.sharma@email.com" value="priya.sharma@email.com" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="loginPassword" class="form-input" placeholder="••••••••••••" value="Password@123" required>
+              <button type="button" class="password-toggle-btn">👁️</button>
+            </div>
+          </div>
+
+          <div class="form-actions-row">
+            <label class="checkbox-label">
+              <input type="checkbox" id="rememberMe" checked>
+              Remember me
+            </label>
+            <button type="button" class="link-btn" onclick="alert('Password reset link sent to your email.')">Forgot password?</button>
+          </div>
+
+          <button type="submit" class="btn-primary">Login</button>
+        </form>
+
+        <div class="divider">or</div>
+
+        <button type="button" class="btn-google" onclick="alert('Google SSO integration simulated.')">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          Continue with Google
+        </button>
+
+        <div style="text-align: center; margin-top: 24px; font-size: 0.85rem; color: var(--neutral-600);">
+          New here? <button class="link-btn" onclick="navigateTo('register')">Create an account</button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 2: REGISTRATION -->
+      <!-- ========================================== -->
+      <section id="screen-register" class="screen-view">
+        <div class="screen-header">
+          <h2 class="screen-title">Create your account</h2>
+          <p class="screen-subtitle">Let's get you started</p>
+        </div>
+
+        <div id="registerAlert" class="alert alert-danger" style="display: none;"></div>
+
+        <form id="formRegister" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="regFullName" class="form-input" placeholder="Priya Sharma" value="Priya Sharma" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="regEmail" class="form-input" placeholder="priya.sharma@email.com" value="priya.sharma@email.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mobile Number</label>
+            <input type="tel" id="regPhone" class="form-input" placeholder="+91 98765 43210" value="+919876543210" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="regPassword" class="form-input" placeholder="••••••••••••" value="Password@123" required>
+              <button type="button" class="password-toggle-btn">👁️</button>
+            </div>
+            <div class="password-requirements">
+              <span class="req-item valid">✓ At least 8 characters</span>
+              <span class="req-item valid">✓ Uppercase letter</span>
+              <span class="req-item valid">✓ Number</span>
+              <span class="req-item valid">✓ Special character</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">Create Account</button>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--neutral-600);">
+          Already have an account? <button class="link-btn" onclick="navigateTo('login')">Login</button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 3: EMAIL OTP VERIFICATION -->
+      <!-- ========================================== -->
+      <section id="screen-email-otp" class="screen-view">
+        <div class="screen-header" style="text-align: center;">
+          <div style="width: 48px; height: 48px; background: var(--primary-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; color: var(--primary-600);">
+            ✉️
+          </div>
+          <h2 class="screen-title">Verify your email</h2>
+          <p class="screen-subtitle">We have sent a 6-digit code to<br><strong id="emailOtpRecipient">priya.sharma@email.com</strong></p>
+        </div>
+
+        <div id="emailOtpAlert" class="alert alert-danger" style="display: none;"></div>
+
+        <div class="otp-container" id="emailOtpContainer">
+          <input type="text" class="otp-box" maxlength="1" autofocus>
+          <input type="text" class="otp-box" maxlength="1">
+          <input type="text" class="otp-box" maxlength="1">
+          <input type="text" class="otp-box" maxlength="1">
+          <input type="text" class="otp-box" maxlength="1">
+          <input type="text" class="otp-box" maxlength="1">
+        </div>
+
+        <button type="button" class="btn-primary" onclick="handleVerifyEmailOtp()">Verify Email Code</button>
+
+        <div class="timer-label">
+          Code expires in <span id="email-expiry-timer" class="timer-highlight">02:45</span>
+        </div>
+
+        <div style="text-align: center; margin-top: 16px;">
+          <button id="email-resend-btn" class="link-btn" onclick="handleResendEmailOtp()" disabled>Resend code (00:25)</button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 4: SMS OTP VERIFICATION -->
+      <!-- ========================================== -->
+      <section id="screen-sms-otp" class="screen-view">
+        <div class="screen-header" style="text-align: center;">
+          <div style="width: 48px; height: 48px; background: var(--success-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; color: var(--success-500);">
+            📱
+          </div>
+          <h2 class="screen-title">Verify your mobile</h2>
+          <p class="screen-subtitle">We have sent a 6-digit code to<br><strong id="smsOtpRecipient">+91 98765 43210</strong></p>
+        </div>
+
+        <div id="smsOtpAlert" class="alert alert-danger" style="display: none;"></div>
+
+        <div class="otp-container" id="smsOtpContainer">
+          <input type="text" class="otp-box" maxlength="1">
+          <input type="text" class="otp-box" maxlength="1">
+          <input type="text" class="otp-box" maxlength="1">
+          <input type="text" class="otp-box" maxlength="1">
+          <input type="text" class="otp-box" maxlength="1">
+          <input type="text" class="otp-box" maxlength="1">
+        </div>
+
+        <button type="button" class="btn-primary" onclick="handleVerifySmsOtp()">Verify Mobile Code</button>
+
+        <div class="timer-label">
+          Code expires in <span id="sms-expiry-timer" class="timer-highlight">02:45</span>
+        </div>
+
+        <div style="text-align: center; margin-top: 16px;">
+          <button id="sms-resend-btn" class="link-btn" onclick="handleResendSmsOtp()" disabled>Resend code (00:25)</button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 5: SMS MAX ATTEMPTS LOCKOUT -->
+      <!-- ========================================== -->
+      <section id="screen-sms-max-attempts" class="screen-view">
+        <div class="screen-header" style="text-align: center;">
+          <div style="width: 56px; height: 56px; background: var(--danger-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; color: var(--danger-600); font-size: 1.5rem;">
+            ⚠️
+          </div>
+          <h2 class="screen-title">Maximum attempts reached</h2>
+          <p class="screen-subtitle">You have exceeded the maximum allowed OTP attempts for safety.</p>
+        </div>
+
+        <div class="alert alert-danger">
+          Maximum attempts reached. Please request a new verification code.
+        </div>
+
+        <button type="button" class="btn-primary" onclick="handleResendSmsOtp()">Resend New Code</button>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 6: REGISTRATION SUCCESS -->
+      <!-- ========================================== -->
+      <section id="screen-registration-success" class="screen-view">
+        <div class="screen-header" style="text-align: center;">
+          <div style="width: 64px; height: 64px; background: var(--success-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; color: var(--success-500); font-size: 2rem;">
+            ✓
+          </div>
+          <h2 class="screen-title">Account created!</h2>
+          <p class="screen-subtitle">Your account has been created successfully and MFA is enabled.</p>
+        </div>
+
+        <div style="background-color: var(--neutral-50); padding: 18px; border-radius: var(--radius-lg); margin-bottom: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--success-500); font-weight: 600;">
+              <span>✓</span> Email verified
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--success-500); font-weight: 600;">
+              <span>✓</span> Mobile verified
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--success-500); font-weight: 600;">
+              <span>✓</span> MFA enabled
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-primary" onclick="navigateTo('login')">Continue to Login</button>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 7: AUTHENTICATED DASHBOARD -->
+      <!-- ========================================== -->
+      <section id="screen-dashboard" class="screen-view">
+        <div class="screen-header">
+          <h2 class="screen-title">IAM Authenticated Session</h2>
+          <p class="screen-subtitle">Welcome, <span id="dashUserName">User</span></p>
+        </div>
+
+        <!-- Session Cookie Profile Card -->
+        <div style="border: 1.5px solid var(--neutral-300); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 16px;">
+          <h3 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--primary-600);">Session Info (/api/me)</h3>
+          <div style="font-size: 0.85rem; line-height: 1.6;">
+            <div><strong>Email:</strong> <span id="dashEmail"></span></div>
+            <div><strong>Mobile:</strong> <span id="dashPhone"></span></div>
+            <div><strong>MFA Status:</strong> <span id="dashMfaStatus" style="color: var(--success-500); font-weight: 600;"></span></div>
+          </div>
+        </div>
+
+        <!-- JWT Dual Auth Demonstration -->
+        <div style="border: 1.5px solid var(--neutral-300); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 20px;">
+          <h3 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--neutral-800);">JWT Authentication Demo</h3>
+          <button type="button" class="btn-primary" style="padding: 8px 12px; font-size: 0.85rem; margin-bottom: 10px;" onclick="handleIssueJwt()">
+            1. Issue JWT Token (POST /api/token)
+          </button>
+          
+          <pre id="jwtOutput" style="background: var(--neutral-100); padding: 10px; border-radius: 6px; font-size: 0.75rem; overflow-x: auto; margin-bottom: 10px;">Token not issued yet.</pre>
+
+          <button id="btnTestProtected" type="button" class="btn-primary" style="padding: 8px 12px; font-size: 0.85rem; background-color: var(--neutral-800);" onclick="handleTestProtectedJwt()" disabled>
+            2. Call Protected API (GET /api/protected with Bearer)
+          </button>
+
+          <pre id="protectedOutput" style="background: var(--neutral-100); padding: 10px; border-radius: 6px; font-size: 0.75rem; overflow-x: auto; margin-top: 10px;">Protected response will appear here.</pre>
+        </div>
+
+        <button type="button" class="btn-primary" style="background-color: var(--danger-600);" onclick="handleLogout()">Logout Session</button>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

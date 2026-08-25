@@ -1,7 +1,6 @@
-// Frontend state tracking user session, OTP timers, and UI mode
+// Frontend state tracking user session, OTP timers, and active screen
 const state = {
   currentScreen: 'login-default',
-  viewMode: 'web',
   user: null,
   userId: null,
   email: 'priya.sharma@email.com',
@@ -17,7 +16,6 @@ const state = {
 
 // Initialize UI listeners and session check on page load
 document.addEventListener('DOMContentLoaded', () => {
-  initViewControls();
   initScreenPicker();
   initPasswordToggles();
   initOtpInputs();
@@ -25,30 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   checkExistingSession();
 });
 
-// Viewport mode switcher (Web view vs Mobile frame mockup)
-function initViewControls() {
-  const webBtn = document.getElementById('btnViewWeb');
-  const mobileBtn = document.getElementById('btnViewMobile');
-  const viewport = document.getElementById('appViewport');
-
-  if (!webBtn || !mobileBtn || !viewport) return;
-
-  webBtn.addEventListener('click', () => {
-    state.viewMode = 'web';
-    webBtn.classList.add('active');
-    mobileBtn.classList.remove('active');
-    viewport.className = 'app-viewport viewport-web';
-  });
-
-  mobileBtn.addEventListener('click', () => {
-    state.viewMode = 'mobile';
-    mobileBtn.classList.add('active');
-    webBtn.classList.remove('active');
-    viewport.className = 'app-viewport viewport-mobile';
-  });
-}
-
-// Quick screen picker dropdown to test any screen state from mockups
+// Quick screen picker dropdown to test any example screen state from mockups
 function initScreenPicker() {
   const picker = document.getElementById('screenPickerSelect');
   if (!picker) return;

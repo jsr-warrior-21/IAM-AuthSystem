@@ -45,8 +45,8 @@ body {
   flex-direction: column;
 }
 
-/* Header & Interactive Preview Bar */
-.preview-navbar {
+/* Top Toolbar & Screen Selector Bar */
+.top-toolbar {
   background-color: var(--neutral-900);
   color: white;
   padding: 10px 20px;
@@ -54,12 +54,12 @@ body {
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 100;
 }
 
-.brand-title {
+.brand-badge-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -76,50 +76,19 @@ body {
   font-weight: 600;
 }
 
-.preview-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.view-toggle {
-  display: flex;
-  background-color: var(--neutral-800);
-  padding: 2px;
-  border-radius: var(--radius-md);
-}
-
-.view-btn {
-  background: none;
-  border: none;
-  color: var(--neutral-400);
-  padding: 5px 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.view-btn.active {
-  background-color: var(--primary);
-  color: white;
-}
-
-.screen-picker {
+.screen-selector-dropdown {
   background-color: var(--neutral-800);
   color: white;
   border: 1px solid var(--neutral-700);
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: var(--radius-md);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   outline: none;
   cursor: pointer;
 }
 
-/* App Viewport Container */
-.app-viewport {
+/* Main Layout Viewport */
+.main-viewport {
   flex: 1;
   display: flex;
   justify-content: center;
@@ -127,21 +96,21 @@ body {
   padding: 24px;
 }
 
-/* Web View: Dual Split Panel matching Reference Screenshot */
-.viewport-web {
+/* Main Card Container - Auto-Adapts Desktop vs Mobile */
+.iam-card-container {
   width: 100%;
   max-width: 920px;
-  min-height: 560px;
   background-color: white;
   border-radius: var(--radius-xl);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   display: flex;
   overflow: hidden;
+  min-height: 560px;
 }
 
-/* Left Brand Panel (Solid Royal Blue `#2563eb`) */
-.web-left-brand {
-  width: 40%;
+/* Left Royal Blue Sidebar (Desktop / Laptop View) */
+.sidebar-brand-panel {
+  width: 38%;
   background-color: var(--primary);
   color: white;
   padding: 40px 32px;
@@ -160,31 +129,31 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 40px auto 20px auto;
+  margin: 20px auto 16px auto;
   backdrop-filter: blur(8px);
 }
 
-.web-left-brand h2 {
-  font-size: 1.8rem;
+.sidebar-brand-panel h2 {
+  font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 8px;
 }
 
-.web-left-brand p {
+.sidebar-brand-panel p {
   font-size: 0.85rem;
   opacity: 0.9;
   max-width: 220px;
   line-height: 1.4;
 }
 
-.web-left-footer {
+.sidebar-footer {
   font-size: 0.75rem;
   opacity: 0.75;
-  margin-top: 40px;
+  margin-top: 24px;
 }
 
-/* Right Content Panel */
-.web-right-content {
+/* Main Content Panel */
+.content-form-panel {
   flex: 1;
   padding: 40px 48px;
   display: flex;
@@ -195,12 +164,25 @@ body {
   max-height: 85vh;
 }
 
-/* Registration Step Progress Wizard */
+/* Mobile Compact Brand Header (Only visible on small mobile screens) */
+.mobile-brand-header {
+  display: none;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.mobile-brand-header h3 {
+  font-size: 1.2rem;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* Registration Step Wizard Indicator */
 .wizard-steps {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   position: relative;
 }
 
@@ -237,72 +219,6 @@ body {
   color: white;
 }
 
-.wizard-step.completed {
-  border-color: var(--primary);
-  background-color: var(--primary);
-  color: white;
-}
-
-/* Mobile Frame Mockup Container */
-.viewport-mobile {
-  width: 380px;
-  height: 720px;
-  background-color: white;
-  border-radius: 40px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 10px #1e293b;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
-.viewport-mobile .web-left-brand {
-  display: none;
-}
-
-.viewport-mobile .web-right-content {
-  padding: 44px 24px 24px 24px;
-  max-height: 100%;
-}
-
-.mobile-notch {
-  width: 120px;
-  height: 22px;
-  background-color: #1e293b;
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mobile-notch-bar {
-  width: 36px;
-  height: 4px;
-  background-color: #334155;
-  border-radius: 2px;
-}
-
-/* Mobile Top Status Bar (9:41, WiFi, Battery) */
-.mobile-status-bar {
-  display: none;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 16px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--neutral-800);
-}
-
-.viewport-mobile .mobile-status-bar {
-  display: flex;
-}
-
 /* Screen Transitions */
 .screen-view {
   display: none;
@@ -316,4 +232,57 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================================== */
+/* AUTOMATIC CSS MEDIA QUERIES FOR FLUID RESPONSIVENESS       */
+/* ========================================================== */
+
+/* Mobile & Tablet Devices (< 768px) */
+@media (max-width: 767px) {
+  .main-viewport {
+    padding: 12px;
+    align-items: flex-start;
+  }
+
+  .iam-card-container {
+    flex-direction: column;
+    max-width: 100%;
+    min-height: auto;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .sidebar-brand-panel {
+    display: none; /* Collapses sidebar on mobile */
+  }
+
+  .mobile-brand-header {
+    display: block; /* Shows sleek mobile brand title */
+  }
+
+  .content-form-panel {
+    padding: 24px 18px;
+    max-height: none;
+  }
+
+  .top-toolbar {
+    padding: 8px 14px;
+  }
+
+  .brand-badge-wrap {
+    font-size: 0.95rem;
+  }
+
+  .screen-selector-dropdown {
+    width: 100%;
+    margin-top: 4px;
+  }
+}
+
+/* Small Smartphone Screen Adjustments (< 400px) */
+@media (max-width: 400px) {
+  .content-form-panel {
+    padding: 20px 14px;
+  }
 }

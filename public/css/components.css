@@ -1,4 +1,4 @@
-/* Component Styling matching Reference Screenshots */
+/* Component Styling with Auto-Scaling Responsive Pin Boxes */
 
 /* Screen Header */
 .screen-header {
@@ -23,7 +23,7 @@
   line-height: 1.4;
 }
 
-/* Header Icon Badge (Shield, Mail, Phone, Lock, Success Check) */
+/* Header Icon Badge */
 .header-icon-badge {
   width: 52px;
   height: 52px;
@@ -123,7 +123,7 @@
   font-weight: 500;
 }
 
-/* Form Actions Row (Remember me & Forgot Password) */
+/* Form Actions Row */
 .form-actions-row {
   display: flex;
   justify-content: space-between;
@@ -158,7 +158,7 @@
   color: var(--danger);
 }
 
-/* Buttons */
+/* Primary & Google Buttons */
 .btn-primary {
   width: 100%;
   padding: 11px 16px;
@@ -224,19 +224,21 @@
 .divider::before { margin-right: 10px; }
 .divider::after { margin-left: 10px; }
 
-/* OTP 6 PIN Digit Input Container */
+/* OTP 6 PIN Digit Input Group (Fluid Responsive Scaling) */
 .otp-pin-group {
   display: flex;
-  justify-content: space-between;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
   margin: 20px 0;
+  width: 100%;
 }
 
 .otp-digit-box {
-  width: 42px;
+  flex: 1;
+  max-width: 44px;
   height: 48px;
   text-align: center;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
   border: 1.5px solid var(--neutral-300);
   border-radius: var(--radius-md);
@@ -263,7 +265,7 @@
   color: var(--neutral-400);
 }
 
-/* Timers & Status Labels */
+/* Timers & Labels */
 .timer-text-row {
   font-size: 0.82rem;
   color: var(--neutral-600);
@@ -274,10 +276,6 @@
 .timer-highlight {
   font-weight: 700;
   color: var(--primary);
-}
-
-.timer-highlight.danger {
-  color: var(--danger);
 }
 
 /* Choice Cards (MFA Method Selection) */
@@ -396,4 +394,16 @@
   background-color: var(--success-light);
   border: 1px solid #a7f3d0;
   color: var(--success);
+}
+
+/* Small Screens Pin Box Scaling */
+@media (max-width: 400px) {
+  .otp-pin-group {
+    gap: 4px;
+  }
+  .otp-digit-box {
+    max-width: 36px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
 }

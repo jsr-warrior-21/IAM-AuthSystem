@@ -4,6 +4,60 @@ A production-ready Identity and Access Management (IAM) solution built with **No
 
 ---
 
+## 🌐 Deployment Guide (Cloud & Hosting Options)
+
+### Option 1: Deploy on Vercel (Recommended - Zero Config)
+1. Go to [vercel.com](https://vercel.com) and log in with GitHub.
+2. Click **"Add New"** ➔ **"Project"**.
+3. Import your GitHub repository: `https://github.com/jsr-warrior-21/IAM-AuthSystem.git`.
+4. Add Environment Variables (optional, defaults are set in config):
+   - `JWT_SECRET`: `your_secure_jwt_secret`
+   - `SESSION_SECRET`: `your_secure_session_secret`
+   - `NODE_ENV`: `production`
+5. Click **"Deploy"**. Vercel will automatically build and publish your live URL!
+
+---
+
+### Option 2: Deploy on Render (Free Web Service)
+1. Go to [render.com](https://render.com) and log in.
+2. Click **"New +"** ➔ **"Web Service"**.
+3. Connect your GitHub repository: `jsr-warrior-21/IAM-AuthSystem`.
+4. Configure service settings:
+   - **Environment**: `Node`
+   - **Build Command**: `npm install`
+   - **Start Command**: `node server.js`
+5. Click **"Create Web Service"**.
+
+---
+
+### Option 3: Deploy on Railway
+1. Go to [railway.app](https://railway.app).
+2. Click **"New Project"** ➔ **"Deploy from GitHub repo"**.
+3. Select `jsr-warrior-21/IAM-AuthSystem`.
+4. Railway will automatically detect `package.json` and deploy `node server.js`.
+
+---
+
+### Option 4: Deploy on VPS (Ubuntu / AWS EC2 / DigitalOcean)
+```bash
+# 1. SSH into server & clone repo
+git clone https://github.com/jsr-warrior-21/IAM-AuthSystem.git
+cd IAM-AuthSystem
+
+# 2. Install dependencies
+npm install --production
+
+# 3. Install & start process manager (PM2)
+sudo npm install -g pm2
+pm2 start server.js --name "iam-auth-system"
+pm2 save
+pm2 startup
+
+# 4. Optional: Setup Nginx reverse proxy to port 3000
+```
+
+---
+
 ## 🏛️ System Architecture & File Naming Conventions
 
 The project follows strict separation of concerns using explicit `*.type.js` file naming conventions:
@@ -11,6 +65,7 @@ The project follows strict separation of concerns using explicit `*.type.js` fil
 ```text
 iam-auth-system/
 ├── package.json
+├── vercel.json                      # Vercel serverless deployment config
 ├── .env.example
 ├── .env
 ├── server.js
@@ -58,40 +113,11 @@ iam-auth-system/
 - **Cryptographic Randomness**: 6-digit numeric OTPs generated via `crypto.randomInt()`.
 - **Hashed Storage**: OTPs are stored strictly as SHA-256 hashes (`crypto.createHash('sha256')`). OTP codes are **never** returned in API responses.
 - **Short Expiry (TTL)**: OTP challenges automatically expire after **3 minutes** (180 seconds).
-- **Attempt Rate Limiting**: Maximum **3 verification attempts** per OTP challenge. Reaching 3 failed attempts invalidates the challenge immediately.
-- **Single-Use Enforcement**: Successfully verified OTPs are marked `used` and invalidated instantly to prevent replay attacks.
-- **Simulated Delivery**: Email and SMS notifications log formatted output to the Node.js server console and frontend terminal box:
-  ```text
-  [SIMULATED EMAIL]
-  To: student@example.com
-  OTP: 482913
-
-  [SIMULATED SMS]
-  To: +919876543210
-  OTP: 123456
-  ```
+- **Attempt Rate Limiting**: Maximum **3 verification attempts** per OTP challenge.
+- **Single-Use Enforcement**: Successfully verified OTPs are marked `used` and invalidated instantly.
 
 ### 2. Account Lockout Protection
-- Tracks consecutive failed password attempts.
 - Reaching **5 consecutive bad password attempts** triggers a temporary **15-minute account lockout**.
-
-### 3. Dual Authentication Mechanisms
-- **Session-Based Cookie Auth**: Uses `express-session` with `HttpOnly`, `SameSite=lax`, and `Secure` attributes for browser dashboard sessions (`/api/me`, `/api/logout`).
-- **JWT-Based Bearer Token Auth**: Issues short-lived JSON Web Tokens (`POST /api/token`) validated via HTTP request headers (`Authorization: Bearer <JWT>`) for API access (`GET /api/protected`).
-
----
-
-## 🔄 User Registration & Login Journeys
-
-### Registration Flow
-```text
-Registration Form  ──►  Email OTP Verification  ──►  SMS OTP Verification  ──►  MFA Enabled  ──►  Registration Success  ──►  Login
-```
-
-### Login Flow
-```text
-Login Form  ──►  Validate Credentials  ──►  MFA Check  ──►  Generate MFA OTP  ──►  Verify OTP  ──►  Session Created  ──►  Dashboard
-```
 
 ---
 
@@ -114,29 +140,6 @@ Login Form  ──►  Validate Credentials  ──►  MFA Check  ──►  Ge
 
 ---
 
-## 💻 Quick Start & Setup Guide
-
-### 1. Prerequisites
-- **Node.js** v18.0.0 or higher
-- **npm** v9.0.0 or higher
-
-### 2. Installation & Server Start
-```bash
-# Clone repository
-git clone https://github.com/jsr-warrior-21/IAM-AuthSystem.git
-cd IAM-AuthSystem
-
-# Install dependencies
-npm install
-
-# Start Express server
-npm start
-```
-
-Open your web browser and navigate to: `http://localhost:3000`
-
----
-
 ## 🧪 Automated Testing
 
 Execute the comprehensive 10-step automated integration test script:
@@ -144,36 +147,6 @@ Execute the comprehensive 10-step automated integration test script:
 ```bash
 npm test
 ```
-
-### Verification Test Suite Coverage:
-1. User registration (`POST /api/register`)
-2. Simulated console log retrieval (`GET /api/logs`)
-3. Email OTP verification (`POST /api/verify-email-otp`)
-4. SMS OTP generation & delivery (`POST /api/send-sms-otp`)
-5. SMS OTP verification (`POST /api/verify-sms-otp`)
-6. Credential login (`POST /api/login`)
-7. MFA Login OTP verification (`POST /api/verify-login-otp`)
-8. Session Cookie authentication (`GET /api/me`)
-9. JWT Token issuance (`POST /api/token`)
-10. Protected API access (`GET /api/protected` with `Authorization: Bearer <JWT>`)
-
----
-
-## 🎨 Interactive Frontend UI Preview Features
-
-- **Viewport Toggle**: Switch between **Web View Layout** (split panel with `#2563eb` brand sidebar) and **Mobile Frame Layout** (smartphone bezel).
-- **Screen Picker Dropdown**: Jump directly to any screen state matching reference mockups:
-  1. Login (Default)
-  2. Invalid Credentials
-  3. Choose Method (MFA Setup)
-  4. Email OTP
-  5. Wrong OTP
-  6. OTP Expired
-  7. Mobile Verification (SMS)
-  8. Mobile OTP Max Attempts
-  9. Register Account
-  10. Registration Success
-  11. Authenticated Dashboard
 
 ---
 

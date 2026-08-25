@@ -1,31 +1,32 @@
-// Application State Manager
+// Frontend state tracking user session, OTP timers, and UI mode
 const state = {
-  currentScreen: 'login',
-  viewMode: 'web', // 'web' or 'mobile'
+  currentScreen: 'login-default',
+  viewMode: 'web',
   user: null,
   userId: null,
-  email: null,
-  phone: null,
+  email: 'priya.sharma@email.com',
+  phone: '+919876543210',
   challengeId: null,
   mfaMethod: 'email',
   jwtToken: null,
   otpTimer: null,
   resendTimer: null,
-  otpTimeLeft: 180, // 3 minutes
-  resendCooldownLeft: 25 // 25 seconds
+  otpTimeLeft: 180,
+  resendCooldownLeft: 25
 };
 
-// DOM Content Loaded
+// Initialize UI listeners and session check on page load
 document.addEventListener('DOMContentLoaded', () => {
-  initViewMode();
+  initViewControls();
+  initScreenPicker();
   initPasswordToggles();
   initOtpInputs();
   initTerminalLogger();
   checkExistingSession();
 });
 
-// View Mode Toggle (Web vs Mobile Frame)
-function initViewMode() {
+// Viewport mode switcher (Web view vs Mobile frame mockup)
+function initViewControls() {
   const webBtn = document.getElementById('btnViewWeb');
   const mobileBtn = document.getElementById('btnViewMobile');
   const viewport = document.getElementById('appViewport');
@@ -47,163 +48,171 @@ function initViewMode() {
   });
 }
 
-// Password Show/Hide Toggles
+// Quick screen picker dropdown to test any screen state from mockups
+function initScreenPicker() {
+  const picker = document.getElementById('screenPickerSelect');
+  if (!picker) return;
+
+  picker.addEventListener('change', (e) => {
+    const targetScreen = e.target.value;
+    navigateTo(targetScreen);
+  });
+}
+
+// Password input eye toggle button
 function initPasswordToggles() {
-  document.querySelectorAll('.password-toggle-btn').forEach(btn => {
+  document.querySelectorAll('.input-icon-right').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const input = btn.previousElementSibling;
-      if (input.type === 'password') {
-        input.type = 'text';
-        btn.innerHTML = `👁️‍🗨️`;
-      } else {
-        input.type = 'password';
-        btn.innerHTML = `👁️`;
+      if (input && (input.type === 'password' || input.type === 'text')) {
+        if (input.type === 'password') {
+          input.type = 'text';
+          btn.innerHTML = `👁️‍🗨️`;
+        } else {
+          input.type = 'password';
+          btn.innerHTML = `👁️`;
+        }
       }
     });
   });
 }
 
-// Screen Navigation Manager
+// Screen navigation helper
 function navigateTo(screenId) {
   state.currentScreen = screenId;
+
+  // Sync dropdown selector
+  const picker = document.getElementById('screenPickerSelect');
+  if (picker) picker.value = screenId;
+
   document.querySelectorAll('.screen-view').forEach(screen => {
     screen.classList.remove('active');
   });
 
-  const targetScreen = document.getElementById(`screen-${screenId}`);
-  if (targetScreen) {
-    targetScreen.classList.add('active');
+  const target = document.getElementById(`screen-${screenId}`);
+  if (target) {
+    target.classList.add('active');
   }
 
-  // Clear any existing alerts
   clearAlerts();
 }
 
-// Clear Alert Messages
+// Hide alert boxes
 function clearAlerts() {
-  document.querySelectorAll('.alert').forEach(alert => {
-    alert.style.display = 'none';
-    alert.innerText = '';
+  document.querySelectorAll('.alert-box').forEach(box => {
+    box.style.display = 'none';
+    box.innerText = '';
   });
 }
 
-// Show Specific Alert Message
-function showAlert(alertId, message, type = 'danger') {
-  const alertEl = document.getElementById(alertId);
+// Show contextual error or success alert box
+function showAlert(boxId, message, type = 'danger') {
+  const alertEl = document.getElementById(boxId);
   if (alertEl) {
     alertEl.innerText = message;
-    alertEl.className = `alert alert-${type}`;
+    alertEl.className = `alert-box ${type}`;
     alertEl.style.display = 'flex';
   }
 }
 
-// 6-Digit OTP Box Management (Auto-Tab, Backspace, Paste)
+// Manage 6-digit OTP input boxes (auto-focusing and pasting)
 function initOtpInputs() {
-  document.querySelectorAll('.otp-container').forEach(container => {
-    const inputs = Array.from(container.querySelectorAll('.otp-box'));
+  document.querySelectorAll('.otp-pin-group').forEach(group => {
+    const boxes = Array.from(group.querySelectorAll('.otp-digit-box'));
 
-    inputs.forEach((input, index) => {
-      input.addEventListener('input', (e) => {
-        const value = e.target.value;
-        // Keep only numbers
-        e.target.value = value.replace(/[^0-9]/g, '');
-
-        if (e.target.value && index < inputs.length - 1) {
-          inputs[index + 1].focus();
+    boxes.forEach((box, idx) => {
+      box.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        if (e.target.value && idx < boxes.length - 1) {
+          boxes[idx + 1].focus();
         }
       });
 
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !input.value && index > 0) {
-          inputs[index - 1].focus();
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !box.value && idx > 0) {
+          boxes[idx - 1].focus();
         }
       });
 
-      input.addEventListener('paste', (e) => {
+      box.addEventListener('paste', (e) => {
         e.preventDefault();
-        const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
-        if (/^\d{6}$/.test(pasted)) {
-          pasted.split('').forEach((char, i) => {
-            if (inputs[i]) inputs[i].value = char;
+        const text = (e.clipboardData || window.clipboardData).getData('text').trim();
+        if (/^\d{6}$/.test(text)) {
+          text.split('').forEach((char, i) => {
+            if (boxes[i]) boxes[i].value = char;
           });
-          inputs[inputs.length - 1].focus();
+          boxes[boxes.length - 1].focus();
         }
       });
     });
   });
 }
 
-// Extract OTP string from PIN inputs
-function getOtpValue(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return '';
-  const inputs = Array.from(container.querySelectorAll('.otp-box'));
-  return inputs.map(input => input.value).join('');
+// Get 6-digit string from PIN boxes
+function getOtpCode(groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return '';
+  const boxes = Array.from(group.querySelectorAll('.otp-digit-box'));
+  return boxes.map(b => b.value).join('');
 }
 
-// Reset PIN inputs
-function clearOtpInputs(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const inputs = Array.from(container.querySelectorAll('.otp-box'));
-  inputs.forEach(input => {
-    input.value = '';
-    input.classList.remove('error');
-    input.disabled = false;
+// Reset PIN boxes
+function clearOtpBoxes(groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  const boxes = Array.from(group.querySelectorAll('.otp-digit-box'));
+  boxes.forEach(b => {
+    b.value = '';
+    b.classList.remove('error');
+    b.disabled = false;
   });
-  if (inputs[0]) inputs[0].focus();
+  if (boxes[0]) boxes[0].focus();
 }
 
-// Highlight OTP Inputs with Red Error State
-function setErrorOtpInputs(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const inputs = Array.from(container.querySelectorAll('.otp-box'));
-  inputs.forEach(input => {
-    input.classList.add('error');
-  });
+// Highlight OTP boxes in red
+function setErrorOtpBoxes(groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  const boxes = Array.from(group.querySelectorAll('.otp-digit-box'));
+  boxes.forEach(b => b.classList.add('error'));
 }
 
-// Disable OTP inputs (e.g. Expired state)
-function disableOtpInputs(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const inputs = Array.from(container.querySelectorAll('.otp-box'));
-  inputs.forEach(input => {
-    input.disabled = true;
-  });
+// Disable OTP boxes
+function disableOtpBoxes(groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  const boxes = Array.from(group.querySelectorAll('.otp-digit-box'));
+  boxes.forEach(b => b.disabled = true);
 }
 
-// Timers for OTP Expiry & Resend Cooldown
-function startOtpTimers(prefix, onExpired) {
+// Start 3-minute expiry countdown and 25-second resend cooldown timers
+function startOtpTimers(prefix) {
   clearInterval(state.otpTimer);
   clearInterval(state.resendTimer);
 
-  state.otpTimeLeft = 180; // 3 minutes
-  state.resendCooldownLeft = 25; // 25 seconds
+  state.otpTimeLeft = 180;
+  state.resendCooldownLeft = 25;
 
   const expiryEl = document.getElementById(`${prefix}-expiry-timer`);
   const resendBtn = document.getElementById(`${prefix}-resend-btn`);
 
   if (resendBtn) resendBtn.disabled = true;
 
-  // Expiry Timer (3 mins)
   state.otpTimer = setInterval(() => {
     state.otpTimeLeft--;
     if (expiryEl) {
-      const mins = String(Math.floor(state.otpTimeLeft / 60)).padStart(2, '0');
-      const secs = String(state.otpTimeLeft % 60).padStart(2, '0');
-      expiryEl.innerText = `${mins}:${secs}`;
+      const m = String(Math.floor(state.otpTimeLeft / 60)).padStart(2, '0');
+      const s = String(state.otpTimeLeft % 60).padStart(2, '0');
+      expiryEl.innerText = `${m}:${s}`;
     }
 
     if (state.otpTimeLeft <= 0) {
       clearInterval(state.otpTimer);
-      if (onExpired) onExpired();
+      disableOtpBoxes(`${prefix}OtpGroup`);
     }
   }, 1000);
 
-  // Resend Cooldown Timer (25s)
   state.resendTimer = setInterval(() => {
     state.resendCooldownLeft--;
     if (resendBtn) {
@@ -219,26 +228,26 @@ function startOtpTimers(prefix, onExpired) {
   }, 1000);
 }
 
-// Terminal Logger Polling (fetches simulated backend console output)
+// Poll server for simulated console outputs (prints email & SMS codes in UI terminal box)
 function initTerminalLogger() {
-  const fetchLogs = async () => {
+  const pollLogs = async () => {
     try {
       const res = await ApiClient.getLogs();
       const logs = res.data?.logs || [];
-      const terminalEl = document.getElementById('terminalConsole');
-      if (terminalEl && logs.length > 0) {
-        terminalEl.innerText = logs.map(l => l.formattedText).join('\n\n---\n\n');
+      const termEl = document.getElementById('terminalBox');
+      if (termEl && logs.length > 0) {
+        termEl.innerText = logs.map(l => l.formattedText).join('\n\n--------------------\n\n');
       }
-    } catch (err) {
-      // Silent fail
+    } catch (e) {
+      // Ignore background poll errors
     }
   };
 
-  fetchLogs();
-  setInterval(fetchLogs, 3000); // Poll every 3s
+  pollLogs();
+  setInterval(pollLogs, 3000);
 }
 
-// Check Existing Active Session
+// Check if user has an existing valid session cookie
 async function checkExistingSession() {
   try {
     const res = await ApiClient.getMe();
@@ -247,67 +256,58 @@ async function checkExistingSession() {
       renderDashboard();
       navigateTo('dashboard');
     }
-  } catch (err) {
-    // User not authenticated - remain on login screen
-    navigateTo('login');
+  } catch (e) {
+    navigateTo('login-default');
   }
 }
 
 // ==========================================
-// FORM SUBMISSION HANDLERS
+// FORM ACTIONS & API CALLS
 // ==========================================
 
-// 1. LOGIN FORM SUBMISSION
-async function handleLogin(e) {
+// Handle Login Form Submit
+async function handleLoginSubmit(e) {
   e.preventDefault();
   clearAlerts();
 
-  const identifier = document.getElementById('loginIdentifier').value.trim();
-  const password = document.getElementById('loginPassword').value;
+  const identifier = document.getElementById('loginEmailInput').value.trim();
+  const password = document.getElementById('loginPasswordInput').value;
 
   if (!identifier || !password) {
-    showAlert('loginAlert', 'Please enter your email/username and password.', 'danger');
+    showAlert('loginAlert', 'Please enter email/username and password.', 'danger');
     return;
   }
 
   try {
     const res = await ApiClient.login({ identifier, password });
-    
+
     if (res.data.mfaRequired) {
       state.challengeId = res.data.challengeId;
       state.userId = res.data.userId;
       state.email = identifier.includes('@') ? identifier : 'priya.sharma@email.com';
       state.mfaMethod = res.data.method;
 
-      // Show Choose Method or direct Email OTP screen
-      document.getElementById('emailOtpRecipient').innerText = state.email;
+      document.getElementById('emailOtpTarget').innerText = state.email;
       navigateTo('email-otp');
-      startOtpTimers('email', () => {
-        showAlert('emailOtpAlert', 'Code expired. Please click resend to get a new code.', 'danger');
-        disableOtpInputs('emailOtpContainer');
-      });
+      startOtpTimers('email');
     }
   } catch (err) {
-    document.getElementById('loginIdentifier').classList.add('error');
-    document.getElementById('loginPassword').classList.add('error');
+    // Show error state on inputs matching reference mockup
+    document.getElementById('loginEmailInput').classList.add('input-error');
+    document.getElementById('loginPasswordInput').classList.add('input-error');
     showAlert('loginAlert', err.message || 'Invalid email or password. Please try again.', 'danger');
   }
 }
 
-// 2. REGISTRATION FORM SUBMISSION
-async function handleRegister(e) {
+// Handle Registration Form Submit
+async function handleRegisterSubmit(e) {
   e.preventDefault();
   clearAlerts();
 
-  const fullName = document.getElementById('regFullName').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
-  const phone = document.getElementById('regPhone').value.trim();
-  const password = document.getElementById('regPassword').value;
-
-  if (!fullName || !email || !password) {
-    showAlert('registerAlert', 'Please fill in all required fields.', 'danger');
-    return;
-  }
+  const fullName = document.getElementById('regNameInput').value.trim();
+  const email = document.getElementById('regEmailInput').value.trim();
+  const phone = document.getElementById('regPhoneInput').value.trim();
+  const password = document.getElementById('regPasswordInput').value;
 
   try {
     const res = await ApiClient.register({ fullName, email, phone, password });
@@ -317,80 +317,70 @@ async function handleRegister(e) {
     state.phone = phone || '+91 98765 43210';
     state.challengeId = res.data.challengeId;
 
-    document.getElementById('emailOtpRecipient').innerText = email;
+    document.getElementById('emailOtpTarget').innerText = email;
     navigateTo('email-otp');
-    startOtpTimers('email', () => {
-      showAlert('emailOtpAlert', 'Code expired. Please click resend to get a new code.', 'danger');
-      disableOtpInputs('emailOtpContainer');
-    });
+    startOtpTimers('email');
   } catch (err) {
-    showAlert('registerAlert', err.message || 'Registration failed. Please check your details.', 'danger');
+    showAlert('registerAlert', err.message || 'Registration failed. Check details.', 'danger');
   }
 }
 
-// 3. VERIFY EMAIL OTP
+// Handle Verify Email OTP Code
 async function handleVerifyEmailOtp() {
   clearAlerts();
-  const otp = getOtpValue('emailOtpContainer');
+  const otp = getOtpCode('emailOtpGroup');
 
   if (otp.length < 6) {
-    showAlert('emailOtpAlert', 'Please enter the complete 6-digit OTP code.', 'danger');
+    showAlert('emailOtpAlert', 'Please enter all 6 digits of the OTP code.', 'danger');
     return;
   }
 
   try {
     const res = await ApiClient.verifyEmailOtp(state.challengeId, otp);
 
-    // Prompt for SMS Verification next
+    // Request SMS OTP next
     const smsRes = await ApiClient.sendSmsOtp(state.userId);
     state.challengeId = smsRes.data.challengeId;
 
-    document.getElementById('smsOtpRecipient').innerText = state.phone;
-    clearOtpInputs('smsOtpContainer');
+    document.getElementById('smsOtpTarget').innerText = state.phone;
+    clearOtpBoxes('smsOtpGroup');
     navigateTo('sms-otp');
-    startOtpTimers('sms', () => {
-      showAlert('smsOtpAlert', 'SMS Code expired. Click resend code.', 'danger');
-      disableOtpInputs('smsOtpContainer');
-    });
+    startOtpTimers('sms');
   } catch (err) {
-    setErrorOtpInputs('emailOtpContainer');
+    setErrorOtpBoxes('emailOtpGroup');
     if (err.remainingAttempts !== undefined) {
-      showAlert('emailOtpAlert', `Incorrect code. Please try again. You have ${err.remainingAttempts} attempt(s) left.`, 'danger');
+      showAlert('emailOtpAlert', `Incorrect code. Please try again. You have ${err.remainingAttempts} attempts left.`, 'danger');
     } else {
       showAlert('emailOtpAlert', err.message || 'Incorrect OTP code.', 'danger');
     }
   }
 }
 
-// 4. RESEND EMAIL OTP
+// Handle Resend Email OTP Code
 async function handleResendEmailOtp() {
   try {
     const res = await ApiClient.sendEmailOtp(state.userId);
     state.challengeId = res.data.challengeId;
-    clearOtpInputs('emailOtpContainer');
+    clearOtpBoxes('emailOtpGroup');
     clearAlerts();
-    showAlert('emailOtpAlert', 'A new 6-digit email OTP has been sent!', 'success');
-    startOtpTimers('email', () => {
-      showAlert('emailOtpAlert', 'Code expired. Please click resend to get a new code.', 'danger');
-      disableOtpInputs('emailOtpContainer');
-    });
+    showAlert('emailOtpAlert', 'New 6-digit email OTP sent!', 'success');
+    startOtpTimers('email');
   } catch (err) {
     showAlert('emailOtpAlert', err.message || 'Could not resend OTP.', 'danger');
   }
 }
 
-// 5. VERIFY SMS OTP
+// Handle Verify SMS OTP Code
 async function handleVerifySmsOtp() {
   clearAlerts();
-  const otp = getOtpValue('smsOtpContainer');
+  const otp = getOtpCode('smsOtpGroup');
 
   if (otp.length < 6) {
-    showAlert('smsOtpAlert', 'Please enter the complete 6-digit OTP code.', 'danger');
+    showAlert('smsOtpAlert', 'Please enter all 6 digits of the SMS code.', 'danger');
     return;
   }
 
   try {
-    // Check if verifying registration or login
     if (state.currentScreen === 'sms-otp' && state.user === null) {
       const res = await ApiClient.verifySmsOtp(state.challengeId, otp);
       state.user = res.data.user;
@@ -402,45 +392,41 @@ async function handleVerifySmsOtp() {
       navigateTo('dashboard');
     }
   } catch (err) {
-    setErrorOtpInputs('smsOtpContainer');
+    setErrorOtpBoxes('smsOtpGroup');
     if (err.code === 'MAX_ATTEMPTS_EXCEEDED') {
       navigateTo('sms-max-attempts');
     } else if (err.remainingAttempts !== undefined) {
-      showAlert('smsOtpAlert', `Incorrect code. Please try again. You have ${err.remainingAttempts} attempt(s) left.`, 'danger');
+      showAlert('smsOtpAlert', `Incorrect code. Please try again. You have ${err.remainingAttempts} attempts left.`, 'danger');
     } else {
       showAlert('smsOtpAlert', err.message || 'Incorrect SMS OTP code.', 'danger');
     }
   }
 }
 
-// 6. RESEND SMS OTP
+// Handle Resend SMS OTP Code
 async function handleResendSmsOtp() {
   try {
     const res = await ApiClient.sendSmsOtp(state.userId);
     state.challengeId = res.data.challengeId;
-    clearOtpInputs('smsOtpContainer');
+    clearOtpBoxes('smsOtpGroup');
     clearAlerts();
-    showAlert('smsOtpAlert', 'A new 6-digit SMS OTP has been sent!', 'success');
-    startOtpTimers('sms', () => {
-      showAlert('smsOtpAlert', 'Code expired. Click resend code.', 'danger');
-      disableOtpInputs('smsOtpContainer');
-    });
+    showAlert('smsOtpAlert', 'New 6-digit SMS OTP sent!', 'success');
+    startOtpTimers('sms');
   } catch (err) {
     showAlert('smsOtpAlert', err.message || 'Could not resend SMS OTP.', 'danger');
   }
 }
 
-// 7. DASHBOARD RENDERING & JWT ACTIONS
+// Render authenticated user dashboard
 function renderDashboard() {
   if (!state.user) return;
   document.getElementById('dashUserName').innerText = state.user.fullName || 'User';
   document.getElementById('dashEmail').innerText = state.user.email || '';
   document.getElementById('dashPhone').innerText = state.user.phone || 'N/A';
-  document.getElementById('dashMfaStatus').innerText = state.user.mfaEnabled ? 'ENABLED (SMS + Email)' : 'DISABLED';
 }
 
-// Issue JWT Token (`POST /api/token`)
-async function handleIssueJwt() {
+// Issue JWT Token
+async function handleIssueJwtToken() {
   try {
     const res = await ApiClient.issueToken(state.user.id);
     state.jwtToken = res.data.token;
@@ -451,24 +437,24 @@ async function handleIssueJwt() {
   }
 }
 
-// Test Protected Resource (`GET /api/protected` with Bearer JWT)
-async function handleTestProtectedJwt() {
+// Call Protected API using JWT Bearer Token
+async function handleCallProtectedJwt() {
   if (!state.jwtToken) return;
   try {
     const res = await ApiClient.getProtected(state.jwtToken);
     document.getElementById('protectedOutput').innerText = JSON.stringify(res.data, null, 2);
   } catch (err) {
-    alert(err.message || 'Failed to fetch protected resource.');
+    alert(err.message || 'Failed to access protected resource.');
   }
 }
 
-// LOGOUT HANDLER
+// Destroy session cookie and logout
 async function handleLogout() {
   try {
     await ApiClient.logout();
     state.user = null;
     state.jwtToken = null;
-    navigateTo('login');
+    navigateTo('login-default');
   } catch (err) {
     alert('Error logging out');
   }

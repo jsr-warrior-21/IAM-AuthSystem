@@ -4,6 +4,7 @@ const { PORT } = require('./src/config/constants.config');
 
 const BASE_URL = `http://localhost:${PORT}/api`;
 
+let server;
 let cookieHeader = '';
 let userId = '';
 let challengeId = '';
@@ -60,6 +61,12 @@ const makeRequest = (method, path, data = null, headers = {}) => {
 };
 
 async function runTests() {
+  try {
+    server = app.listen(PORT);
+  } catch (e) {
+    // Port active
+  }
+
   console.log('\n==================================================');
   console.log(' RUNNING IAM AUTH & MFA ENDPOINT INTEGRATION TESTS');
   console.log('==================================================\n');
@@ -175,12 +182,14 @@ async function runTests() {
     console.log('\n==================================================');
     console.log(' ALL 10 INTEGRATION TESTS PASSED SUCCESSFULLY! 🎉');
     console.log('==================================================\n');
+    if (server) server.close();
     process.exit(0);
 
   } catch (err) {
     console.error('\n❌ Integration Test Failed:', err.message);
+    if (server) server.close();
     process.exit(1);
   }
 }
 
-setTimeout(runTests, 1000);
+setTimeout(runTests, 500);

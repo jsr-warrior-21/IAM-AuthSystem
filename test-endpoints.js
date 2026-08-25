@@ -11,7 +11,6 @@ let emailOtp = '';
 let smsOtp = '';
 let jwtToken = '';
 
-// Helper for making HTTP requests
 const makeRequest = (method, path, data = null, headers = {}) => {
   return new Promise((resolve, reject) => {
     const url = new URL(`${BASE_URL}${path}`);
@@ -35,7 +34,6 @@ const makeRequest = (method, path, data = null, headers = {}) => {
     const req = http.request(options, (res) => {
       let body = '';
 
-      // Capture cookies
       const setCookie = res.headers['set-cookie'];
       if (setCookie) {
         cookieHeader = setCookie.map(c => c.split(';')[0]).join('; ');
@@ -67,12 +65,16 @@ async function runTests() {
   console.log('==================================================\n');
 
   try {
+    const uniqueId = Date.now();
+    const testEmail = `student.${uniqueId}@example.com`;
+    const testPhone = `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+
     // 1. Test Registration
     console.log('[1/10] Testing POST /api/register...');
     const regRes = await makeRequest('POST', '/register', {
       fullName: 'Priya Sharma',
-      email: 'test.student@example.com',
-      phone: '+919876543210',
+      email: testEmail,
+      phone: testPhone,
       password: 'Password@123'
     });
     console.log('Status:', regRes.status);
@@ -81,7 +83,7 @@ async function runTests() {
     userId = regRes.data.data.userId;
     challengeId = regRes.data.data.challengeId;
 
-    // 2. Fetch Simulated Console Logs to get Email OTP
+    // 2. Fetch Simulated Console Logs
     console.log('\n[2/10] Fetching Simulated Console Logs...');
     const logsRes = await makeRequest('GET', '/logs');
     console.log('Logs count:', logsRes.data.data.logs.length);
@@ -110,7 +112,7 @@ async function runTests() {
     smsOtp = smsLogsRes.data.data.logs[0].otp;
     console.log('Retrieved SMS OTP from console logs:', smsOtp);
 
-    // 6. Test Verify SMS OTP (Completes Registration)
+    // 6. Test Verify SMS OTP
     console.log('\n[5/10] Testing POST /api/verify-sms-otp...');
     const smsVerifyRes = await makeRequest('POST', '/verify-sms-otp', {
       challengeId,
@@ -123,7 +125,7 @@ async function runTests() {
     // 7. Test Login
     console.log('\n[6/10] Testing POST /api/login...');
     const loginRes = await makeRequest('POST', '/login', {
-      identifier: 'test.student@example.com',
+      identifier: testEmail,
       password: 'Password@123'
     });
     console.log('Status:', loginRes.status);
@@ -136,7 +138,7 @@ async function runTests() {
     const loginOtp = loginMfaLogs.data.data.logs[0].otp;
     console.log('Retrieved Login MFA OTP:', loginOtp);
 
-    // 9. Verify Login OTP (Creates Session Cookie)
+    // 9. Verify Login OTP
     console.log('\n[7/10] Testing POST /api/verify-login-otp...');
     const verifyLoginRes = await makeRequest('POST', '/verify-login-otp', {
       challengeId,
@@ -161,7 +163,7 @@ async function runTests() {
     console.log('JWT Issued:', tokenRes.data);
     jwtToken = tokenRes.data.data.token;
 
-    // 12. Test Protected GET /api/protected (Bearer JWT)
+    // 12. Test Protected GET /api/protected
     console.log('\n[10/10] Testing GET /api/protected (Bearer JWT Header)...');
     const protectedRes = await makeRequest('GET', '/protected', null, {
       Authorization: `Bearer ${jwtToken}`
@@ -181,5 +183,4 @@ async function runTests() {
   }
 }
 
-// Run test script after server start delay
-setTimeout(runTests, 1500);
+setTimeout(runTests, 1000);
